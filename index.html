@@ -15,7 +15,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            overscroll-behavior-y: none; /* 모바일 브라우저 당겨서 새로고침 방지 */
+            overscroll-behavior-y: none; 
         }
 
         #toolbar {
@@ -40,14 +40,9 @@
             border-radius: 8px;
             overflow: hidden;
             background-color: #fff;
-            touch-action: none; /* 모바일 환경에서 캔버스 드래그 시 화면 스크롤, 확대 제스처 차단 */
+            touch-action: none; 
         }
 
-        /* 
-           We use two overlapping canvases:
-           1. bgCanvas: Draws the procedural court (Basketball, Soccer, etc.)
-           2. fgCanvas: Handles the user's interactive points and polygons
-        */
         canvas {
             position: absolute;
             top: 0;
@@ -63,15 +58,9 @@
             z-index: 1;
         }
         
-        .grab {
-            cursor: grab !important;
-        }
-        .grabbing {
-            cursor: grabbing !important;
-        }
-        .pointer {
-            cursor: pointer !important;
-        }
+        .grab { cursor: grab !important; }
+        .grabbing { cursor: grabbing !important; }
+        .pointer { cursor: pointer !important; }
         
         .active-tool {
             background-color: #ffffff;
@@ -79,22 +68,18 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        /* 모바일 툴바 최적화: 가로 스크롤바 숨김 */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
 
     <header id="toolbar" class="p-2 sm:p-3 flex flex-col lg:flex-row items-center justify-between gap-3 shrink-0 shadow-md relative z-10 bg-white">
-        <!-- 상단부: 타이틀, 셀렉트, 실행취소 그룹 (모바일에서 한 줄) -->
         <div class="flex items-center justify-between w-full lg:w-auto gap-2">
-            <h1 class="text-xl font-bold text-gray-800 hidden xl:block shrink-0 mr-4">Court Mapper</h1>
+            <h1 class="text-xl font-bold text-gray-800 hidden xl:flex shrink-0 mr-4 items-baseline">
+                Court Mapper 
+                <span class="text-sm font-normal text-gray-500 ml-2">made by. 한태건 T</span>
+            </h1>
             
             <div class="relative shrink-0 flex-1 sm:flex-none">
                 <select id="courtSelect" class="appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-40 p-2 sm:p-2.5 shadow-sm">
@@ -104,6 +89,7 @@
                     <option value="volleyball">배구장 (Volleyball)</option>
                     <option value="football">축구장 (Football)</option>
                     <option value="ultimate">얼티밋 (Ultimate)</option>
+                    <option value="dodgeball">피구장 (Dodgeball)</option>
                     <option value="baseball">야구장 (Baseball)</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -111,8 +97,10 @@
                 </div>
             </div>
 
-            <!-- 모바일 최적화: 화면이 작을 땐 아이콘만 표시 -->
             <div class="flex gap-1 sm:gap-2 text-sm shrink-0 ml-auto">
+                <button id="instructionsToggleBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-3 rounded-lg transition-colors shadow-sm active:scale-95" title="사용법 보기">
+                    ℹ️<span class="hidden sm:inline"> 사용법</span>
+                </button>
                 <button id="undoBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-3 rounded-lg transition-colors shadow-sm active:scale-95" title="이전 (Undo)">
                     ⬅️<span class="hidden sm:inline"> 이전</span>
                 </button>
@@ -128,7 +116,6 @@
             </div>
         </div>
 
-        <!-- 하단부(모바일) / 우측부(데스크탑): 도구 선택 (가로로 스와이프 가능) -->
         <div class="flex bg-gray-100 p-1 rounded-lg border border-gray-200 shadow-inner w-full lg:w-auto overflow-x-auto hide-scrollbar touch-pan-x shrink-0 snap-x">
             <button id="tool-polygon" class="tool-btn active-tool px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap snap-start active:scale-95" data-tool="polygon">📍 다각형</button>
             <button id="finish-polygon-btn" class="hidden px-3 py-2 text-sm font-bold text-white bg-green-500 rounded-md transition-colors hover:bg-green-600 whitespace-nowrap snap-start active:scale-95 shadow-sm mx-1">✅ 면 완성</button>
@@ -147,14 +134,12 @@
         </div>
     </main>
     
-    <!-- 사용법 토글 버튼 및 패널 (모두 적용) -->
-    <button id="instructionsToggleBtn" class="absolute bottom-4 left-4 bg-white/90 hover:bg-white text-gray-700 p-2 rounded-full shadow-md z-30 transition-colors active:scale-95 cursor-pointer" title="사용법 보기/숨기기">
-        ℹ️
-    </button>
-
-    <div id="instructionsPanel" class="hidden absolute bottom-14 left-4 bg-white/95 p-3 rounded-lg shadow text-xs text-gray-600 z-20 max-w-xs pointer-events-none border border-gray-200">
-        <p class="font-bold mb-1 text-gray-800">사용법 (Instructions):</p>
-        <ul class="list-disc pl-4 space-y-1">
+    <div id="instructionsPanel" class="absolute top-16 left-4 sm:top-20 sm:left-6 bg-white/95 backdrop-blur p-4 rounded-xl shadow-xl text-sm text-gray-700 z-30 max-w-xs border border-gray-200 hidden">
+        <div class="flex justify-between items-center mb-2">
+            <p class="font-bold text-gray-900 text-base">💡 사용 방법</p>
+            <button id="closeInstructionsBtn" class="text-gray-400 hover:text-gray-600 font-bold p-1 text-lg leading-none">&times;</button>
+        </div>
+        <ul class="list-disc pl-5 space-y-2">
             <li><b>도구</b>를 선택하여 원하는 항목을 추가하세요.</li>
             <li>다각형: 점을 찍고 <b>시작점을 누르거나 상단 완성 버튼(또는 우클릭)</b>을 눌러 완성합니다.</li>
             <li>다각형의 선을 클릭하면 <b>새로운 점을 추가</b>할 수 있습니다.</li>
@@ -170,29 +155,46 @@
         const fgCanvas = document.getElementById('fgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
         const fgCtx = fgCanvas.getContext('2d');
-
         const finishPolygonBtn = document.getElementById('finish-polygon-btn');
 
-        // History State for Undo/Redo
         let history = [];
         let historyStep = -1;
-
-        // State for interactive polygon and tools
-        let polygons = []; // 완성된 여러 개의 다각형을 저장 (다중 다각형 지원)
-        let currentPolygon = []; // 현재 그리고 있는 다각형
-        let items = []; // Store balls and opponents: { type: 'ball'|'opponent', x, y }
-        
+        let polygons = [];
+        let currentPolygon = []; 
+        let items = []; 
         let currentMode = 'polygon';
-        let draggingElement = null; // e.g., { type: 'point'|'item', index: 0 }
+        let draggingElement = null; 
         let hoveredElement = null;
-        let isDragged = false; // To track if dragging actually occurred
-        let lastPos = { x: 0, y: 0 }; // 드래그 드롭(스냅) 판정을 위한 마지막 좌표 기억
+        let isDragged = false; 
+        let lastPos = { x: 0, y: 0 }; 
 
-        // Undo/Redo functions
+        const config = {
+            pointRadius: 8, 
+            pointColor: '#ef4444', 
+            hoverColor: '#b91c1c', 
+            lineColor: '#3b82f6', 
+            fillColor: 'rgba(59, 130, 246, 0.4)', 
+            lineWidth: 3
+        };
+
+        const courtData = {
+            basketball: { w: 28, h: 15, baseColor: 'rgba(217, 119, 67, 0.4)', outerColor: 'rgba(217, 119, 67, 0.15)' }, 
+            futsal: { w: 40, h: 20, baseColor: '#2b7a2b', outerColor: '#1e5e1e' },
+            netball: { w: 30.5, h: 15.25, baseColor: '#fbd38d', outerColor: '#93c5fd' },
+            volleyball: { w: 18, h: 9, baseColor: '#e07a3e', outerColor: '#3a8ebf' }, 
+            football: { w: 105, h: 68, baseColor: '#358a35', outerColor: '#2b7a2b' },
+            ultimate: { w: 18, h: 9, baseColor: '#2e7d32', outerColor: '#1b5e20' },
+            dodgeball: { w: 22, h: 14, baseColor: '#d97743', outerColor: '#c2895b' }, 
+            baseball: { w: 105, h: 68, baseColor: '#2b7a2b', outerColor: '#1b5e20' }
+        };
+
+        let currentScale = 1;
+        let currentCourtW = 0;
+        let currentCourtH = 0;
+        let isVerticalView = false;
+
         function saveState() {
-            if (historyStep < history.length - 1) {
-                history = history.slice(0, historyStep + 1);
-            }
+            if (historyStep < history.length - 1) history = history.slice(0, historyStep + 1);
             history.push({
                 polygons: JSON.parse(JSON.stringify(polygons)),
                 currentPolygon: JSON.parse(JSON.stringify(currentPolygon)),
@@ -211,21 +213,9 @@
             }
         }
 
-        document.getElementById('undoBtn').addEventListener('click', () => {
-            if (historyStep > 0) {
-                historyStep--;
-                loadState(historyStep);
-            }
-        });
+        document.getElementById('undoBtn').addEventListener('click', () => { if (historyStep > 0) loadState(--historyStep); });
+        document.getElementById('redoBtn').addEventListener('click', () => { if (historyStep < history.length - 1) loadState(++historyStep); });
 
-        document.getElementById('redoBtn').addEventListener('click', () => {
-            if (historyStep < history.length - 1) {
-                historyStep++;
-                loadState(historyStep);
-            }
-        });
-
-        // Setup Tool Selection
         const toolBtns = document.querySelectorAll('.tool-btn');
         toolBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -237,549 +227,352 @@
                 target.classList.add('active-tool');
                 target.classList.remove('text-gray-500', 'hover:bg-gray-200', 'hover:text-gray-800');
                 currentMode = target.dataset.tool;
-                drawForeground(); // 툴 변경 시 버튼 숨김/표시 상태 즉시 갱신
+                drawForeground(); 
             });
         });
 
-        // 면 완성 버튼 이벤트
         finishPolygonBtn.addEventListener('click', () => {
-            if (currentPolygon.length >= 3) {
-                polygons.push([...currentPolygon]);
-                currentPolygon = [];
-                saveState();
-            } else if (currentPolygon.length > 0) {
-                currentPolygon = []; // 점이 3개 미만일 때는 그냥 선 취소(초기화)
-                saveState();
-            }
-            drawForeground();
+            if (currentPolygon.length >= 3) polygons.push([...currentPolygon]);
+            currentPolygon = []; saveState(); drawForeground();
         });
 
-        // 우클릭으로 면 완성/취소 기능 추가
         fgCanvas.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // 브라우저 기본 우클릭 메뉴 뜨는 것 방지
+            e.preventDefault(); 
             if (currentMode === 'polygon' && currentPolygon.length > 0) {
-                if (currentPolygon.length >= 3) {
-                    polygons.push([...currentPolygon]);
-                }
-                currentPolygon = [];
-                saveState();
-                drawForeground();
+                if (currentPolygon.length >= 3) polygons.push([...currentPolygon]);
+                currentPolygon = []; saveState(); drawForeground();
             }
         });
 
-        // ESC 또는 Enter 키로 면 완성/취소 기능 추가
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' || e.key === 'Enter') {
                 if (currentMode === 'polygon' && currentPolygon.length > 0) {
-                    if (currentPolygon.length >= 3) {
-                        polygons.push([...currentPolygon]);
-                    }
-                    currentPolygon = [];
-                    saveState();
-                    drawForeground();
+                    if (currentPolygon.length >= 3) polygons.push([...currentPolygon]);
+                    currentPolygon = []; saveState(); drawForeground();
                 }
             }
         });
 
-        // Configuration
-        const config = {
-            pointRadius: 8, // 30% 확대 (기존 6)
-            pointColor: '#ef4444', // Red
-            hoverColor: '#b91c1c', // Dark red
-            lineColor: '#3b82f6', // Blue
-            fillColor: 'rgba(59, 130, 246, 0.4)', // Semi-transparent blue
-            lineWidth: 3
-        };
-
-        // 모든 경기장을 축구장(105x68) 캔버스 비율에 맞추어 그리기 위해 데이터 정돈
-        const courtData = {
-            // 농구장 색상은 투명도(0.4)를 높여 빨간색 다각형이 잘 보이도록 개선
-            basketball: { w: 28, h: 15, baseColor: 'rgba(217, 119, 67, 0.4)', outerColor: 'rgba(217, 119, 67, 0.15)' }, 
-            futsal: { w: 40, h: 20, baseColor: '#2b7a2b', outerColor: '#1e5e1e' },
-            netball: { w: 30.5, h: 15.25, baseColor: '#fbd38d', outerColor: '#93c5fd' },
-            volleyball: { w: 18, h: 9, baseColor: '#e07a3e', outerColor: '#3a8ebf' }, 
-            football: { w: 105, h: 68, baseColor: '#358a35', outerColor: '#2b7a2b' },
-            ultimate: { w: 18, h: 9, baseColor: '#2e7d32', outerColor: '#1b5e20' }, // 배구장과 동일한 18x9 캔버스 스케일 유지
-            baseball: { w: 105, h: 105, baseColor: '#1e5e1e', outerColor: '#1e5e1e' } // 야구장은 가로/세로를 꽉 채우게 1:1 베이스로 계산
-        };
-
-        let currentScale = 1;
-        let currentCourtW = 0;
-        let currentCourtH = 0;
-        let isVerticalView = false; // 세로(Portrait) 모드 여부
-
         function resizeCanvases() {
             const workspace = document.getElementById('workspace');
-            // 창이 너무 작거나 숨겨져 있을 때 크기가 음수가 되는 것을 방지 (최소 10px 보장)
             const ww = Math.max(10, workspace.clientWidth - 40); 
             const wh = Math.max(10, workspace.clientHeight - 40); 
+            const targetW = 105; const targetH = 68;
 
-            // 모든 맵의 기준 캔버스 사이즈를 축구장(105x68) 비율로 완벽하게 통일
-            const targetW = 105;
-            const targetH = 68;
-
-            // 기기 방향이 세로(높이가 너비보다 김)인지 확인
             isVerticalView = wh > ww;
-
             let scaleX, scaleY;
-            if (isVerticalView) {
-                // 세로 모드일 경우: 논리적 가로(targetW)를 물리적 세로(wh)에, 논리적 세로(targetH)를 물리적 가로(ww)에 맞춤
-                scaleX = wh / targetW;
-                scaleY = ww / targetH;
-            } else {
-                scaleX = ww / targetW;
-                scaleY = wh / targetH;
-            }
+            if (isVerticalView) { scaleX = wh / targetW; scaleY = ww / targetH; } 
+            else { scaleX = ww / targetW; scaleY = wh / targetH; }
 
-            // 스케일 비율이 0이나 음수가 되는 것을 방지 (최소 0.01 보장)
             currentScale = Math.max(0.01, Math.min(scaleX, scaleY) * 0.95); 
+            currentCourtW = targetW * currentScale; 
+            currentCourtH = targetH * currentScale; 
 
-            currentCourtW = targetW * currentScale; // 논리적 경기장 길이 (항상 105 베이스)
-            currentCourtH = targetH * currentScale; // 논리적 경기장 너비 (항상 68 베이스)
-
-            // 실제 화면에 그려질 물리적 크기 (세로 모드면 서로 스왑)
             const physW = isVerticalView ? currentCourtH : currentCourtW;
             const physH = isVerticalView ? currentCourtW : currentCourtH;
 
-            // Apply size to container
             container.style.width = `${physW}px`;
             container.style.height = `${physH}px`;
 
-            // Apply size to canvases
             [bgCanvas, fgCanvas].forEach(c => {
-                // High DPI support
                 const dpr = window.devicePixelRatio || 1;
-                c.width = physW * dpr;
-                c.height = physH * dpr;
-                c.style.width = `${physW}px`;
-                c.style.height = `${physH}px`;
-                const ctx = c.getContext('2d');
-                ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset before applying new scale
-                ctx.scale(dpr, dpr);
+                c.width = physW * dpr; c.height = physH * dpr;
+                c.style.width = `${physW}px`; c.style.height = `${physH}px`;
+                const ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
             });
-
-            drawBackgroundCourt();
-            drawForeground();
+            drawBackgroundCourt(); drawForeground();
         }
 
         window.addEventListener('resize', () => {
-            // Adjust points relative to new scale
-            const oldW = currentCourtW;
-            const oldH = currentCourtH;
-            
+            const oldW = currentCourtW; const oldH = currentCourtH;
             resizeCanvases();
-            
-            // Reposition points to maintain relative position
             if (oldW > 0 && oldH > 0) {
-                const updateScale = (pt) => {
-                    if (!pt.ref) {
-                        pt.x = (pt.x / oldW) * currentCourtW;
-                        pt.y = (pt.y / oldH) * currentCourtH;
-                    }
-                };
+                const updateScale = (pt) => { if (!pt.ref) { pt.x = (pt.x / oldW) * currentCourtW; pt.y = (pt.y / oldH) * currentCourtH; } };
                 polygons.forEach(poly => poly.forEach(updateScale));
                 currentPolygon.forEach(updateScale);
-                
-                items.forEach(item => {
-                    item.x = (item.x / oldW) * currentCourtW;
-                    item.y = (item.y / oldH) * currentCourtH;
-                });
+                items.forEach(item => { item.x = (item.x / oldW) * currentCourtW; item.y = (item.y / oldH) * currentCourtH; });
                 drawForeground();
             }
         });
 
         function drawLine(ctx, x1, y1, x2, y2, color = 'white', width = 2) {
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+            ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
         }
 
         function drawCircle(ctx, x, y, r, color = 'white', width = 2, fill = false) {
-            // 원 반지름이 0 이하가 되지 않도록 철저히 방어 (IndexSizeError 방지)
             r = Math.max(0.1, Math.abs(r)); 
-            
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            if (fill) {
-                ctx.fillStyle = color;
-                ctx.fill();
-            } else {
-                ctx.strokeStyle = color;
-                ctx.lineWidth = width;
-                ctx.stroke();
-            }
+            ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+            if (fill) { ctx.fillStyle = color; ctx.fill(); } 
+            else { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke(); }
         }
 
         function drawBackgroundCourt() {
             const type = courtSelect.value;
             const data = courtData[type];
-            
-            // 105x68 기반의 고정 캔버스 사이즈
             const w = Math.max(1, currentCourtW);
             const h = Math.max(1, currentCourtH);
             const s = Math.max(0.01, currentScale); 
-
             const physW = isVerticalView ? currentCourtH : currentCourtW;
             const physH = isVerticalView ? currentCourtW : currentCourtH;
 
-            // Clear background (물리적 크기 기준)
             bgCtx.clearRect(0, 0, physW, physH);
-
-            // 🌟 세로 모드일 경우 캔버스 렌더링 컨텍스트를 90도 회전
             bgCtx.save();
-            if (isVerticalView) {
-                bgCtx.translate(currentCourtH, 0);
-                bgCtx.rotate(Math.PI / 2);
-            }
+            
+            if (isVerticalView) { bgCtx.translate(currentCourtH, 0); bgCtx.rotate(Math.PI / 2); }
 
-            // 1. 전체 캔버스 배경 (아우터 존/여백) 칠하기
             bgCtx.fillStyle = data.outerColor || data.baseColor;
             bgCtx.fillRect(0, 0, w, h);
 
-            // 2. 종목별 실제 경기장 비율 스케일링
-            let fitScale = 0.92; 
-            let localScale;
-            let cw, ch, ox, oy, cs;
+            const realW = data.w; const realH = data.h;
+            const fitScale = 0.92; 
+            const localScale = Math.min((105 * fitScale) / realW, (68 * fitScale) / realH);
+            const cw = realW * localScale * s; 
+            const ch = realH * localScale * s; 
+            const ox = (w - cw) / 2;           
+            const oy = (h - ch) / 2;           
+            const cs = Math.max(0.01, localScale * s);         
 
-            if (type === 'baseball') {
-                // 야구장은 우측 하단 기준이므로 화면을 꽉 채우도록 설정
-                fitScale = 1.0; 
-                // 야구장 특성상 가로(w) 크기에 맞춰 스케일링
-                localScale = (105 * fitScale) / 105;
-                cs = localScale * s; 
-                
-                // 베이스 코트 채우기 없음 (이미 배경 초록색이 다 덮음)
-                cw = w;
-                ch = h;
-                ox = 0;
-                oy = 0;
-            } else {
-                localScale = Math.min((105 * fitScale) / data.w, (68 * fitScale) / data.h);
-                cw = data.w * localScale * s; // 스케일링된 경기장 실제 넓이
-                ch = data.h * localScale * s; // 스케일링된 경기장 실제 높이
-                ox = (w - cw) / 2;           // 중앙 정렬을 위한 X 오프셋
-                oy = (h - ch) / 2;           // 중앙 정렬을 위한 Y 오프셋
-                cs = localScale * s;         // 해당 경기장 전용 세부 스케일(선 굵기 등)
-
-                // 3. 실제 코트 영역(Inner) 정렬 및 베이스 색상 칠하기
-                bgCtx.translate(ox, oy);
-                bgCtx.fillStyle = data.baseColor;
+            bgCtx.translate(ox, oy);
+            bgCtx.fillStyle = data.baseColor;
+            
+            // 야구장은 바탕을 다르게 처리하므로 예외
+            if (type !== 'baseball' && type !== 'dodgeball') {
                 bgCtx.fillRect(0, 0, cw, ch);
             }
-
+            
             bgCtx.strokeStyle = 'white';
-            bgCtx.lineWidth = 2; // Default line width
+            bgCtx.lineWidth = 2; 
 
             try {
                 if (type === 'basketball') {
-                    // Common boundary
-                    bgCtx.strokeRect(0, 0, cw, ch);
+                    bgCtx.strokeRect(0, 0, cw, ch); drawLine(bgCtx, cw/2, 0, cw/2, ch);
+                    const centerRadius = 1.8 * cs; drawCircle(bgCtx, cw/2, ch/2, centerRadius); 
+                    const keyW = 5.8 * cs; const keyH = 4.9 * cs;
+                    bgCtx.fillStyle = 'rgba(180, 70, 30, 0.35)'; 
+                    bgCtx.fillRect(0, (ch - keyH)/2, keyW, keyH); bgCtx.fillRect(cw - keyW, (ch - keyH)/2, keyW, keyH);
+                    bgCtx.strokeRect(0, (ch - keyH)/2, keyW, keyH); bgCtx.strokeRect(cw - keyW, (ch - keyH)/2, keyW, keyH);
+                    drawCircle(bgCtx, keyW, ch/2, centerRadius); drawCircle(bgCtx, cw - keyW, ch/2, centerRadius);
+                    const basketOffset = 1.575 * cs; const threePtRadius = 6.75 * cs;
+                    const straightLineDist = 2.99 * cs; const sidelineOffset = 0.9 * cs; 
                     
-                    // Center line
-                    drawLine(bgCtx, cw/2, 0, cw/2, ch);
-                    // FIBA Basketball
-                    const centerRadius = 1.8 * cs;
-                    drawCircle(bgCtx, cw/2, ch/2, centerRadius); 
-                    
-                    const keyW = 5.8 * cs;
-                    const keyH = 4.9 * cs;
-                    // Paint area (Keys)
-                    bgCtx.fillStyle = 'rgba(180, 70, 30, 0.35)'; // 페인트존도 투명도 반영
-                    bgCtx.fillRect(0, (ch - keyH)/2, keyW, keyH);
-                    bgCtx.fillRect(cw - keyW, (ch - keyH)/2, keyW, keyH);
-                    
-                    bgCtx.strokeRect(0, (ch - keyH)/2, keyW, keyH);
-                    bgCtx.strokeRect(cw - keyW, (ch - keyH)/2, keyW, keyH);
-                    
-                    // Free throw circles
-                    drawCircle(bgCtx, keyW, ch/2, centerRadius); 
-                    drawCircle(bgCtx, cw - keyW, ch/2, centerRadius);
-
-                    // 3-point lines
-                    const basketOffset = 1.575 * cs;
-                    const threePtRadius = 6.75 * cs;
-                    const straightLineDist = 2.99 * cs; 
-                    const sidelineOffset = 0.9 * cs; 
-                    
-                    // Left 3pt
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(0, sidelineOffset);
-                    bgCtx.lineTo(straightLineDist, sidelineOffset);
+                    bgCtx.beginPath(); bgCtx.moveTo(0, sidelineOffset); bgCtx.lineTo(straightLineDist, sidelineOffset);
                     bgCtx.arc(basketOffset, ch/2, threePtRadius, -Math.PI/2 * 0.85, Math.PI/2 * 0.85);
-                    bgCtx.lineTo(straightLineDist, ch - sidelineOffset);
-                    bgCtx.lineTo(0, ch - sidelineOffset);
-                    bgCtx.stroke();
+                    bgCtx.lineTo(straightLineDist, ch - sidelineOffset); bgCtx.lineTo(0, ch - sidelineOffset); bgCtx.stroke();
 
-                    // Right 3pt
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(cw, sidelineOffset);
-                    bgCtx.lineTo(cw - straightLineDist, sidelineOffset);
+                    bgCtx.beginPath(); bgCtx.moveTo(cw, sidelineOffset); bgCtx.lineTo(cw - straightLineDist, sidelineOffset);
                     bgCtx.arc(cw - basketOffset, ch/2, threePtRadius, Math.PI + Math.PI/2 * 0.85, Math.PI - Math.PI/2 * 0.85, true);
-                    bgCtx.lineTo(cw - straightLineDist, ch - sidelineOffset);
-                    bgCtx.lineTo(cw, ch - sidelineOffset);
-                    bgCtx.stroke();
+                    bgCtx.lineTo(cw - straightLineDist, ch - sidelineOffset); bgCtx.lineTo(cw, ch - sidelineOffset); bgCtx.stroke();
                     
-                    // Backboard & Basket
                     drawLine(bgCtx, 1.2*cs, ch/2 - 0.9*cs, 1.2*cs, ch/2 + 0.9*cs, 'white', 3);
                     drawCircle(bgCtx, basketOffset, ch/2, 0.22*cs, '#f97316', 2, true); 
-                    
                     drawLine(bgCtx, cw - 1.2*cs, ch/2 - 0.9*cs, cw - 1.2*cs, ch/2 + 0.9*cs, 'white', 3);
                     drawCircle(bgCtx, cw - basketOffset, ch/2, 0.22*cs, '#f97316', 2, true);
 
                 } else if (type === 'futsal') {
-                     // Common boundary
-                    bgCtx.strokeRect(0, 0, cw, ch);
+                    bgCtx.strokeRect(0, 0, cw, ch); drawLine(bgCtx, cw/2, 0, cw/2, ch);
+                    drawCircle(bgCtx, cw/2, ch/2, 3*cs); drawCircle(bgCtx, cw/2, ch/2, 0.2*cs, 'white', 1, true);
+                    const pRad = 6 * cs; const goalHalf = 1.58 * cs;
                     
-                    // Center line
-                    drawLine(bgCtx, cw/2, 0, cw/2, ch);
-                    // Futsal (40x20)
-                    const centerRadius = 3 * cs;
-                    drawCircle(bgCtx, cw/2, ch/2, centerRadius);
-                    drawCircle(bgCtx, cw/2, ch/2, 0.2*cs, 'white', 1, true);
+                    bgCtx.beginPath(); bgCtx.arc(0, ch/2 - goalHalf, pRad, -Math.PI/2, 0); bgCtx.lineTo(pRad, ch/2 + goalHalf); bgCtx.arc(0, ch/2 + goalHalf, pRad, 0, Math.PI/2); bgCtx.stroke();
+                    drawCircle(bgCtx, 6*cs, ch/2, 0.2*cs, 'white', 1, true); drawCircle(bgCtx, 10*cs, ch/2, 0.2*cs, 'white', 1, true);
 
-                    const pRad = 6 * cs;
-                    const goalHalf = 1.58 * cs;
+                    bgCtx.beginPath(); bgCtx.arc(cw, ch/2 - goalHalf, pRad, 3*Math.PI/2, Math.PI, true); bgCtx.lineTo(cw - pRad, ch/2 + goalHalf); bgCtx.arc(cw, ch/2 + goalHalf, pRad, Math.PI, Math.PI/2, true); bgCtx.stroke();
+                    drawCircle(bgCtx, cw - 6*cs, ch/2, 0.2*cs, 'white', 1, true); drawCircle(bgCtx, cw - 10*cs, ch/2, 0.2*cs, 'white', 1, true);
                     
-                    // Left Penalty
-                    bgCtx.beginPath();
-                    bgCtx.arc(0, ch/2 - goalHalf, pRad, -Math.PI/2, 0);
-                    bgCtx.lineTo(pRad, ch/2 + goalHalf);
-                    bgCtx.arc(0, ch/2 + goalHalf, pRad, 0, Math.PI/2);
-                    bgCtx.stroke();
-                    
-                    // Penalty marks
-                    drawCircle(bgCtx, 6*cs, ch/2, 0.2*cs, 'white', 1, true);
-                    drawCircle(bgCtx, 10*cs, ch/2, 0.2*cs, 'white', 1, true);
-
-                    // Right Penalty
-                    bgCtx.beginPath();
-                    bgCtx.arc(cw, ch/2 - goalHalf, pRad, 3*Math.PI/2, Math.PI, true);
-                    bgCtx.lineTo(cw - pRad, ch/2 + goalHalf);
-                    bgCtx.arc(cw, ch/2 + goalHalf, pRad, Math.PI, Math.PI/2, true);
-                    bgCtx.stroke();
-                    
-                    drawCircle(bgCtx, cw - 6*cs, ch/2, 0.2*cs, 'white', 1, true);
-                    drawCircle(bgCtx, cw - 10*cs, ch/2, 0.2*cs, 'white', 1, true);
-                    
-                    // Corners
                     const cRad = 0.25 * cs;
-                    bgCtx.beginPath(); bgCtx.arc(0, 0, cRad, 0, Math.PI/2); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(0, ch, cRad, -Math.PI/2, 0); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(cw, 0, cRad, Math.PI/2, Math.PI); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(cw, ch, cRad, Math.PI, 3*Math.PI/2); bgCtx.stroke();
-                    
-                    // Goals
-                    bgCtx.strokeRect(0, ch/2 - goalHalf, -1*cs, goalHalf*2);
-                    bgCtx.strokeRect(cw, ch/2 - goalHalf, 1*cs, goalHalf*2);
+                    bgCtx.beginPath(); bgCtx.arc(0, 0, cRad, 0, Math.PI/2); bgCtx.stroke(); bgCtx.beginPath(); bgCtx.arc(0, ch, cRad, -Math.PI/2, 0); bgCtx.stroke();
+                    bgCtx.beginPath(); bgCtx.arc(cw, 0, cRad, Math.PI/2, Math.PI); bgCtx.stroke(); bgCtx.beginPath(); bgCtx.arc(cw, ch, cRad, Math.PI, 3*Math.PI/2); bgCtx.stroke();
+                    bgCtx.strokeRect(0, ch/2 - goalHalf, -1*cs, goalHalf*2); bgCtx.strokeRect(cw, ch/2 - goalHalf, 1*cs, goalHalf*2);
 
                 } else if (type === 'netball') {
-                    // Netball (30.5x15.25)
-                    bgCtx.strokeStyle = 'white';
-                    bgCtx.lineWidth = 3;
-                    bgCtx.strokeRect(0, 0, cw, ch);
-
-                    // 코트를 3등분: 골 서드(Goal Third) 2개와 센터 서드(Center Third) 1개
+                    bgCtx.strokeStyle = 'white'; bgCtx.lineWidth = 3; bgCtx.strokeRect(0, 0, cw, ch);
                     const third = cw / 3;
-                    
-                    // 골 서드(양 끝)에만 밝은 음영 처리
-                    bgCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                    bgCtx.fillRect(0, 0, third, ch);
-                    bgCtx.fillRect(cw - third, 0, third, ch);
-
-                    // Transverse lines (횡단선)
-                    drawLine(bgCtx, third, 0, third, ch, 'white', 2);
-                    drawLine(bgCtx, cw - third, 0, cw - third, ch, 'white', 2);
-                    
-                    // Center circle (지름 0.9m = 3ft)
+                    bgCtx.fillStyle = 'rgba(255, 255, 255, 0.15)'; bgCtx.fillRect(0, 0, third, ch); bgCtx.fillRect(cw - third, 0, third, ch);
+                    drawLine(bgCtx, third, 0, third, ch, 'white', 2); drawLine(bgCtx, cw - third, 0, cw - third, ch, 'white', 2);
                     drawCircle(bgCtx, cw/2, ch/2, 0.45 * cs, 'white', 2);
-
-                    // Goal circles (반지름 4.9m = 16ft의 반원)
                     const goalRad = 4.9 * cs;
-                    
-                    // 왼쪽 골 서클
-                    bgCtx.beginPath();
-                    bgCtx.arc(0, ch/2, goalRad, -Math.PI/2, Math.PI/2);
-                    bgCtx.stroke();
-
-                    // 오른쪽 골 서클
-                    bgCtx.beginPath();
-                    bgCtx.arc(cw, ch/2, goalRad, Math.PI/2, -Math.PI/2);
-                    bgCtx.stroke();
-                    
-                    // Goal posts (골라인 중앙)
-                    drawCircle(bgCtx, 0, ch/2, 0.2*cs, '#ef4444', 2, true);
-                    drawCircle(bgCtx, cw, ch/2, 0.2*cs, '#ef4444', 2, true);
+                    bgCtx.beginPath(); bgCtx.arc(0, ch/2, goalRad, -Math.PI/2, Math.PI/2); bgCtx.stroke();
+                    bgCtx.beginPath(); bgCtx.arc(cw, ch/2, goalRad, Math.PI/2, -Math.PI/2); bgCtx.stroke();
+                    drawCircle(bgCtx, 0, ch/2, 0.2*cs, '#ef4444', 2, true); drawCircle(bgCtx, cw, ch/2, 0.2*cs, '#ef4444', 2, true);
 
                 } else if (type === 'volleyball') {
-                    // Volleyball inner court (18x9)
-                    bgCtx.strokeStyle = 'white';
-                    bgCtx.lineWidth = 2;
-                    bgCtx.strokeRect(0, 0, cw, ch);
-                    
-                    // Center line
+                    bgCtx.strokeStyle = 'white'; bgCtx.lineWidth = 2; bgCtx.strokeRect(0, 0, cw, ch);
                     drawLine(bgCtx, cw/2, 0, cw/2, ch, 'white', 3);
-                    
-                    // Attack lines (3m)
                     const attackDist = 3 * cs;
                     drawLine(bgCtx, cw/2 - attackDist, 0, cw/2 - attackDist, ch);
                     drawLine(bgCtx, cw/2 + attackDist, 0, cw/2 + attackDist, ch);
 
                 } else if (type === 'football') {
-                     // Common boundary
-                    bgCtx.strokeRect(0, 0, cw, ch);
-                    
-                    // Center line
-                    drawLine(bgCtx, cw/2, 0, cw/2, ch);
-                    const stripeCount = 18;
-                    const stripeWidth = cw / stripeCount;
-                    for(let i=0; i<stripeCount; i++) {
-                        if(i%2 === 0) {
-                            bgCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-                            bgCtx.fillRect(i*stripeWidth, 0, stripeWidth, ch);
-                        }
-                    }
-
+                    bgCtx.strokeRect(0, 0, cw, ch); drawLine(bgCtx, cw/2, 0, cw/2, ch);
+                    const stripeWidth = cw / 18;
+                    for(let i=0; i<18; i++) { if(i%2 === 0) { bgCtx.fillStyle = 'rgba(255, 255, 255, 0.08)'; bgCtx.fillRect(i*stripeWidth, 0, stripeWidth, ch); } }
                     const centerRadius = Math.max(0.1, 9.15 * cs);
-                    drawCircle(bgCtx, cw/2, ch/2, centerRadius);
-                    drawCircle(bgCtx, cw/2, ch/2, 0.3*cs, 'white', 1, true);
-
-                    const pAreaW = 16.5 * cs;
-                    const pAreaH = 40.32 * cs;
-                    bgCtx.strokeRect(0, (ch - pAreaH)/2, pAreaW, pAreaH);
-                    bgCtx.strokeRect(cw - pAreaW, (ch - pAreaH)/2, pAreaW, pAreaH);
-
-                    const gAreaW = 5.5 * cs;
-                    const gAreaH = 18.32 * cs;
-                    bgCtx.strokeRect(0, (ch - gAreaH)/2, gAreaW, gAreaH);
-                    bgCtx.strokeRect(cw - gAreaW, (ch - gAreaH)/2, gAreaW, gAreaH);
-                    
+                    drawCircle(bgCtx, cw/2, ch/2, centerRadius); drawCircle(bgCtx, cw/2, ch/2, 0.3*cs, 'white', 1, true);
+                    const pAreaW = 16.5 * cs; const pAreaH = 40.32 * cs;
+                    bgCtx.strokeRect(0, (ch - pAreaH)/2, pAreaW, pAreaH); bgCtx.strokeRect(cw - pAreaW, (ch - pAreaH)/2, pAreaW, pAreaH);
+                    const gAreaW = 5.5 * cs; const gAreaH = 18.32 * cs;
+                    bgCtx.strokeRect(0, (ch - gAreaH)/2, gAreaW, gAreaH); bgCtx.strokeRect(cw - gAreaW, (ch - gAreaH)/2, gAreaW, gAreaH);
                     const pMarkDist = 11 * cs;
-                    drawCircle(bgCtx, pMarkDist, ch/2, 0.3*cs, 'white', 1, true);
-                    drawCircle(bgCtx, cw - pMarkDist, ch/2, 0.3*cs, 'white', 1, true);
-
-                    bgCtx.beginPath();
-                    bgCtx.arc(pMarkDist, ch/2, centerRadius, -0.92, 0.92);
-                    bgCtx.stroke();
-                    
-                    bgCtx.beginPath();
-                    bgCtx.arc(cw - pMarkDist, ch/2, centerRadius, Math.PI - 0.92, Math.PI + 0.92);
-                    bgCtx.stroke();
-
+                    drawCircle(bgCtx, pMarkDist, ch/2, 0.3*cs, 'white', 1, true); drawCircle(bgCtx, cw - pMarkDist, ch/2, 0.3*cs, 'white', 1, true);
+                    bgCtx.beginPath(); bgCtx.arc(pMarkDist, ch/2, centerRadius, -0.92, 0.92); bgCtx.stroke();
+                    bgCtx.beginPath(); bgCtx.arc(cw - pMarkDist, ch/2, centerRadius, Math.PI - 0.92, Math.PI + 0.92); bgCtx.stroke();
                     const cRad = Math.max(0.1, 1 * cs);
-                    bgCtx.beginPath(); bgCtx.arc(0, 0, cRad, 0, Math.PI/2); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(0, ch, cRad, 3*Math.PI/2, 0); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(cw, 0, cRad, Math.PI/2, Math.PI); bgCtx.stroke();
-                    bgCtx.beginPath(); bgCtx.arc(cw, ch, cRad, Math.PI, 3*Math.PI/2); bgCtx.stroke();
+                    bgCtx.beginPath(); bgCtx.arc(0, 0, cRad, 0, Math.PI/2); bgCtx.stroke(); bgCtx.beginPath(); bgCtx.arc(0, ch, cRad, 3*Math.PI/2, 0); bgCtx.stroke();
+                    bgCtx.beginPath(); bgCtx.arc(cw, 0, cRad, Math.PI/2, Math.PI); bgCtx.stroke(); bgCtx.beginPath(); bgCtx.arc(cw, ch, cRad, Math.PI, 3*Math.PI/2); bgCtx.stroke();
 
                 } else if (type === 'ultimate') {
-                    // 얼티밋 프리즈비 (현재 캔버스 배구장 18x9 비율에 맞춰 실제 얼티밋 라인 렌더링)
-                    bgCtx.strokeStyle = 'white';
-                    bgCtx.lineWidth = 2;
                     bgCtx.strokeRect(0, 0, cw, ch);
-                    
-                    // 얼티밋 프리즈비 엔드존 (실제 규격 비율에 맞게 전체 코트 길이의 18%로 설정)
-                    const endZoneW = cw * 0.18;
-                    
-                    // 엔드존 라인 (얼티밋 경기장엔 중앙선이 없습니다)
+                    const endZoneW = cw * 0.18; 
                     drawLine(bgCtx, endZoneW, 0, endZoneW, ch, 'white', 2);
                     drawLine(bgCtx, cw - endZoneW, 0, cw - endZoneW, ch, 'white', 2);
                     
-                    // 브릭 마크 (엔드존에서 중앙 쪽으로 전체 길이의 18% 만큼 떨어진 지점)
-                    const brickDist = cw * 0.18;
-                    const crossSize = 0.3 * cs; // 브릭 마크(십자가) 크기 (기존 0.5 대비 40% 축소)
+                    const brickDist = cw * 0.18; const crossSize = 0.6 * cs; 
+                    drawLine(bgCtx, endZoneW + brickDist - crossSize, ch/2, endZoneW + brickDist + crossSize, ch/2, 'white', 2);
+                    drawLine(bgCtx, endZoneW + brickDist, ch/2 - crossSize, endZoneW + brickDist, ch/2 + crossSize, 'white', 2);
+                    drawLine(bgCtx, cw - endZoneW - brickDist - crossSize, ch/2, cw - endZoneW - brickDist + crossSize, ch/2, 'white', 2);
+                    drawLine(bgCtx, cw - endZoneW - brickDist, ch/2 - crossSize, cw - endZoneW - brickDist, ch/2 + crossSize, 'white', 2);
+
+                } else if (type === 'dodgeball') {
+                    // 완벽한 비율의 스포츠 피구장 (내야 16x8, 외야 기본폭 3m, 내야쪽 연장 외야 4m)
+                    const inW = 16 * cs; // 내야 가로 (8m + 8m)
+                    const inH = 8 * cs;  // 내야 세로 (8m)
+                    const outW = 3 * cs; // 외야 기본 폭 (등 뒤 3m, 상하 두께 3m)
+                    const armL = 4 * cs; // 상하 외야가 내야 쪽으로 뻗어 들어오는 길이 (총 7m 중 기본폭 3m 제외)
                     
-                    // 왼쪽 브릭 마크
-                    const leftBrickX = endZoneW + brickDist;
-                    drawLine(bgCtx, leftBrickX - crossSize, ch/2, leftBrickX + crossSize, ch/2, 'white', 2);
-                    drawLine(bgCtx, leftBrickX, ch/2 - crossSize, leftBrickX, ch/2 + crossSize, 'white', 2);
+                    // 중앙 정렬 좌표 계산
+                    const startX = (cw - inW) / 2;
+                    const startY = (ch - inH) / 2;
+
+                    // 1. 외야 (파스텔 옐로우)
+                    bgCtx.fillStyle = 'rgba(253, 224, 71, 0.9)';
                     
-                    // 오른쪽 브릭 마크
-                    const rightBrickX = cw - endZoneW - brickDist;
-                    drawLine(bgCtx, rightBrickX - crossSize, ch/2, rightBrickX + crossSize, ch/2, 'white', 2);
-                    drawLine(bgCtx, rightBrickX, ch/2 - crossSize, rightBrickX, ch/2 + crossSize, 'white', 2);
+                    // 좌측 C자 형태 외야
+                    bgCtx.fillRect(startX - outW, startY - outW, outW, inH + outW * 2); // 좌측 등 뒤 영역
+                    bgCtx.fillRect(startX, startY - outW, armL, outW); // 좌측 위쪽 연장 영역
+                    bgCtx.fillRect(startX, startY + inH, armL, outW); // 좌측 아래쪽 연장 영역
                     
-                } else if (type === 'baseball') {
-                    // 야구장 렌더링 로직 (우측 하단 홈베이스)
-                    // 중심점(홈플레이트) 위치 계산: 화면 우측 하단 여백 설정
-                    const margin = 20 * currentScale;
-                    const homeX = w - margin;
-                    const homeY = h - margin;
-                    
-                    // 야구장 스케일 기준 크기 (루간 거리 약 27.43m 비율 기반)
-                    const baseDist = 27 * cs; 
-                    
-                    // 내야 흙(Dirt) 그리기 (다이아몬드 + 투수 마운드 주변 크게)
-                    const dirtRadius = baseDist + (5 * cs);
+                    // 우측 Ↄ자 형태 외야
+                    bgCtx.fillRect(startX + inW, startY - outW, outW, inH + outW * 2); // 우측 등 뒤 영역
+                    bgCtx.fillRect(startX + inW - armL, startY - outW, armL, outW); // 우측 위쪽 연장 영역
+                    bgCtx.fillRect(startX + inW - armL, startY + inH, armL, outW); // 우측 아래쪽 연장 영역
+
+                    // 2. 내야 (파스텔 그린)
+                    bgCtx.fillStyle = 'rgba(110, 231, 183, 0.9)';
+                    bgCtx.fillRect(startX, startY, inW, inH);
+
+                    // 3. 라인 그리기 (흰색) - 검은색 치수선(반원) 제외
+                    bgCtx.strokeStyle = 'white'; 
+                    bgCtx.lineWidth = 2.5;
+
+                    // 내야 박스 및 중앙선
+                    bgCtx.strokeRect(startX, startY, inW, inH);
+                    drawLine(bgCtx, startX + inW/2, startY, startX + inW/2, startY + inH, 'white', 2.5);
+
+                    // 좌측 외야 테두리 라인
                     bgCtx.beginPath();
-                    bgCtx.moveTo(homeX, homeY);
-                    bgCtx.arc(homeX, homeY, dirtRadius, Math.PI, 1.5 * Math.PI);
-                    bgCtx.lineTo(homeX, homeY);
-                    bgCtx.fillStyle = '#b4835a'; // 흙 색상
-                    bgCtx.fill();
-                    
-                    // 1, 2, 3루 위치 계산 (1루는 위쪽, 3루는 왼쪽)
-                    const firstX = homeX;
-                    const firstY = homeY - baseDist;
-                    const thirdX = homeX - baseDist;
-                    const thirdY = homeY;
-                    const secondX = homeX - baseDist;
-                    const secondY = homeY - baseDist;
-                    
-                    // 내야 다이아몬드 잔디
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(homeX, homeY);
-                    bgCtx.lineTo(firstX, firstY);
-                    bgCtx.lineTo(secondX, secondY);
-                    bgCtx.lineTo(thirdX, thirdY);
-                    bgCtx.closePath();
-                    bgCtx.fillStyle = '#2b7a2b'; // 짙은 잔디색
-                    bgCtx.fill();
-                    bgCtx.strokeStyle = '#b4835a'; // 베이스 라인 흙길 표현
-                    bgCtx.lineWidth = 4 * currentScale;
+                    bgCtx.moveTo(startX + armL, startY); // 안쪽 끝에서 시작
+                    bgCtx.lineTo(startX + armL, startY - outW);
+                    bgCtx.lineTo(startX - outW, startY - outW);
+                    bgCtx.lineTo(startX - outW, startY + inH + outW);
+                    bgCtx.lineTo(startX + armL, startY + inH + outW);
+                    bgCtx.lineTo(startX + armL, startY + inH); // 안쪽 끝에서 마무리
                     bgCtx.stroke();
                     
-                    // 파울 라인 (1루, 3루 선상 연장선)
-                    const foulLineLen = Math.max(w, h);
-                    drawLine(bgCtx, homeX, homeY, homeX, homeY - foulLineLen, 'white', 2); // 1루측 우익선상
-                    drawLine(bgCtx, homeX, homeY, homeX - foulLineLen, homeY, 'white', 2); // 3루측 좌익선상
-                    
-                    // 투수 마운드
-                    const moundX = homeX - (baseDist / 2);
-                    const moundY = homeY - (baseDist / 2);
-                    drawCircle(bgCtx, moundX, moundY, 3 * cs, '#b4835a', 1, true); // 마운드 흙
-                    bgCtx.fillStyle = 'white';
-                    bgCtx.fillRect(moundX - 1*cs, moundY - 0.3*cs, 2*cs, 0.6*cs); // 투수판
-                    
-                    // 베이스 그리기 (흰색 사각형)
-                    const baseSize = 1.5 * cs;
-                    bgCtx.fillStyle = 'white';
-                    bgCtx.fillRect(firstX - baseSize/2, firstY - baseSize/2, baseSize, baseSize); // 1루
-                    bgCtx.fillRect(secondX - baseSize/2, secondY - baseSize/2, baseSize, baseSize); // 2루
-                    bgCtx.fillRect(thirdX - baseSize/2, thirdY - baseSize/2, baseSize, baseSize); // 3루
-                    
-                    // 홈플레이트 (오각형)
+                    // 우측 외야 테두리 라인
                     bgCtx.beginPath();
-                    const hSize = 1 * cs;
-                    bgCtx.moveTo(homeX, homeY);
-                    bgCtx.lineTo(homeX, homeY - hSize);
-                    bgCtx.lineTo(homeX - hSize, homeY - hSize);
-                    bgCtx.lineTo(homeX - hSize, homeY);
+                    bgCtx.moveTo(startX + inW - armL, startY);
+                    bgCtx.lineTo(startX + inW - armL, startY - outW);
+                    bgCtx.lineTo(startX + inW + outW, startY - outW);
+                    bgCtx.lineTo(startX + inW + outW, startY + inH + outW);
+                    bgCtx.lineTo(startX + inW - armL, startY + inH + outW);
+                    bgCtx.lineTo(startX + inW - armL, startY + inH);
+                    bgCtx.stroke();
+
+                } else if (type === 'baseball') {
+                    // 화면에 꽉 차게 비율 20% 확대 & 주자 흙길(베이스패스) 완벽 복구
+                    bgCtx.restore(); 
+                    bgCtx.save();
+                    
+                    if (isVerticalView) { bgCtx.translate(currentCourtH, 0); bgCtx.rotate(Math.PI / 2); }
+                    
+                    const margin = 2 * currentScale; // 하단 여백 최소화
+                    const homeX = w / 2;
+                    const homeY = h - margin; 
+                    
+                    bgCtx.translate(homeX, homeY);
+                    bgCtx.rotate(-Math.PI * 3 / 4); 
+                    
+                    // 비율을 기존 대비 25% 이상 대폭 확대 (화면을 가득 채우도록 계산)
+                    const maxDist = Math.max(1, Math.min(homeY, w * 0.8)) * 1.25; 
+                    const b_cs = Math.max(0.01, maxDist / 100);
+                    
+                    // 1. 외야 잔디 + 둥근 펜스 라인
+                    bgCtx.beginPath(); 
+                    bgCtx.moveTo(0, 0); 
+                    bgCtx.arc(0, 0, maxDist, 0, Math.PI / 2); 
                     bgCtx.closePath();
+                    bgCtx.fillStyle = 'rgba(27, 94, 32, 0.85)';
+                    bgCtx.fill();
+                    
+                    bgCtx.beginPath(); 
+                    bgCtx.arc(0, 0, maxDist, 0, Math.PI / 2);
+                    bgCtx.strokeStyle = 'white'; 
+                    bgCtx.lineWidth = 3; 
+                    bgCtx.stroke();
+                    
+                    // 2. 주자 선 (베이스 패스 - 흙길) 명확하게 복구!
+                    const baseDist = 27.43 * b_cs;
+                    bgCtx.lineWidth = 4 * b_cs;
+                    bgCtx.strokeStyle = '#b4835a'; // 모래 색상
+                    bgCtx.strokeRect(0, 0, baseDist, baseDist); // 다이아몬드 주자 선 렌더링
+                    
+                    // 3. 투수 마운드 및 홈플레이트 주변 모래 최소화
+                    const moundDist = 18.44 * b_cs;
+                    const moundX = moundDist * Math.cos(Math.PI / 4);
+                    const moundY = moundDist * Math.sin(Math.PI / 4);
+                    
+                    bgCtx.beginPath(); 
+                    bgCtx.arc(moundX, moundY, 3.5 * b_cs, 0, Math.PI * 2); 
+                    bgCtx.fillStyle = '#b4835a'; 
+                    bgCtx.fill();
+                    
+                    bgCtx.beginPath(); 
+                    bgCtx.arc(0, 0, 4 * b_cs, 0, Math.PI * 2); 
+                    bgCtx.fill();
+                    
+                    // 4. 파울 라인
+                    drawLine(bgCtx, 0, 0, maxDist, 0, 'white', 2);
+                    drawLine(bgCtx, 0, 0, 0, maxDist, 'white', 2);
+                    
+                    // 5. 투수판
+                    bgCtx.save(); bgCtx.translate(moundX, moundY); bgCtx.rotate(-Math.PI / 4); bgCtx.fillStyle = 'white'; bgCtx.fillRect(-1.2*b_cs, -0.3*b_cs, 2.4*b_cs, 0.6*b_cs); bgCtx.restore();
+                    
+                    // 6. 1, 2, 3루 베이스
+                    const baseSize = 1.5 * b_cs;
                     bgCtx.fillStyle = 'white';
+                    bgCtx.fillRect(baseDist - baseSize, 0, baseSize, baseSize); // 1루
+                    bgCtx.fillRect(0, baseDist - baseSize, baseSize, baseSize); // 3루
+                    bgCtx.fillRect(baseDist - baseSize/2, baseDist - baseSize/2, baseSize, baseSize); // 2루
+                    
+                    // 7. 홈플레이트
+                    const hp = 1.2 * b_cs;
+                    bgCtx.beginPath(); 
+                    bgCtx.moveTo(0, 0); 
+                    bgCtx.lineTo(hp, 0); 
+                    bgCtx.lineTo(hp, hp); 
+                    bgCtx.lineTo(0, hp); 
+                    bgCtx.closePath();
+                    bgCtx.fillStyle = 'white'; 
                     bgCtx.fill();
                 }
             } catch (err) {
                 console.error("Court drawing failed:", err);
             }
-            
-            bgCtx.restore(); // 회전된 렌더링 컨텍스트 복구
+            bgCtx.restore(); 
         }
 
         function getResolvedPolyPoints(poly) {
-            // 특정 다각형 배열의 점 실시간 좌표 헬퍼 함수
             return poly.map((pt, index) => {
                 if (pt.ref) {
                     const item = items.find(i => i.id === pt.ref);
@@ -793,22 +586,14 @@
             const physW = isVerticalView ? currentCourtH : currentCourtW;
             const physH = isVerticalView ? currentCourtW : currentCourtH;
             fgCtx.clearRect(0, 0, physW, physH);
-
-            // 🌟 세로 모드일 경우 캔버스 렌더링 컨텍스트를 90도 회전
             fgCtx.save();
-            if (isVerticalView) {
-                fgCtx.translate(currentCourtH, 0);
-                fgCtx.rotate(Math.PI / 2);
-            }
+            if (isVerticalView) { fgCtx.translate(currentCourtH, 0); fgCtx.rotate(Math.PI / 2); }
 
-            // 헬퍼 함수: 다각형 그리기 (완성된 것과 현재 진행 중인 것 모두 처리)
             const drawPoly = (poly, isClosed, polyIndex = -1) => {
                 const resolved = getResolvedPolyPoints(poly);
                 if (resolved.length === 0) return;
 
-                // 🌟 팀별 자동 색상 지정 로직
-                let attackCount = 0;
-                let oppCount = 0;
+                let attackCount = 0, oppCount = 0;
                 for (const pt of poly) {
                     if (pt.ref) {
                         const item = items.find(i => i.id === pt.ref);
@@ -817,595 +602,207 @@
                     }
                 }
 
-                let strokeColor = config.lineColor; // 기본 파란선
-                let fillColor = config.fillColor; // 기본 파란면
-                
-                if (attackCount > 0 && attackCount >= oppCount) {
-                    // 공격수가 주를 이루면 붉은색 계열로 자동 변경
-                    strokeColor = '#ef4444'; 
-                    fillColor = 'rgba(239, 68, 68, 0.25)';
-                } else if (oppCount > 0 && oppCount > attackCount) {
-                    // 수비수가 주를 이루면 짙은 푸른색 계열로 자동 변경
-                    strokeColor = '#2563eb'; 
-                    fillColor = 'rgba(37, 99, 235, 0.25)';
-                }
+                let strokeColor = config.lineColor; let fillColor = config.fillColor; 
+                if (attackCount > 0 && attackCount >= oppCount) { strokeColor = '#ef4444'; fillColor = 'rgba(239, 68, 68, 0.25)'; } 
+                else if (oppCount > 0 && oppCount > attackCount) { strokeColor = '#2563eb'; fillColor = 'rgba(37, 99, 235, 0.25)'; }
 
-                fgCtx.beginPath();
-                fgCtx.moveTo(resolved[0].x, resolved[0].y);
-                for (let i = 1; i < resolved.length; i++) {
-                    fgCtx.lineTo(resolved[i].x, resolved[i].y);
-                }
+                fgCtx.beginPath(); fgCtx.moveTo(resolved[0].x, resolved[0].y);
+                for (let i = 1; i < resolved.length; i++) fgCtx.lineTo(resolved[i].x, resolved[i].y);
+                if (isClosed) { fgCtx.closePath(); fgCtx.fillStyle = fillColor; fgCtx.fill(); }
+                fgCtx.strokeStyle = strokeColor; fgCtx.lineWidth = config.lineWidth; fgCtx.lineJoin = 'round'; fgCtx.stroke();
 
-                if (isClosed) {
-                    fgCtx.closePath();
-                    fgCtx.fillStyle = fillColor;
-                    fgCtx.fill();
-                }
-
-                fgCtx.strokeStyle = strokeColor;
-                fgCtx.lineWidth = config.lineWidth;
-                fgCtx.lineJoin = 'round';
-                fgCtx.stroke();
-
-                // Draw Points
                 for (let i = 0; i < resolved.length; i++) {
-                    const p = resolved[i];
-                    if (p.ref) continue; 
+                    const p = resolved[i]; if (p.ref) continue; 
+                    fgCtx.beginPath(); fgCtx.arc(p.x, p.y, config.pointRadius, 0, Math.PI * 2);
+                    let isHov = false, isCurDrag = false;
+                    if (polyIndex === -1) { isHov = hoveredElement && hoveredElement.type === 'currentPoint' && hoveredElement.index === p.originalIndex; isCurDrag = draggingElement && draggingElement.type === 'currentPoint' && draggingElement.index === p.originalIndex; } 
+                    else { isHov = hoveredElement && hoveredElement.type === 'polyPoint' && hoveredElement.polyIndex === polyIndex && hoveredElement.ptIndex === p.originalIndex; isCurDrag = draggingElement && draggingElement.type === 'polyPoint' && draggingElement.polyIndex === polyIndex && draggingElement.ptIndex === p.originalIndex; }
 
-                    fgCtx.beginPath();
-                    fgCtx.arc(p.x, p.y, config.pointRadius, 0, Math.PI * 2);
-                    
-                    let isHovered = false;
-                    let isDragged = false;
-                    
-                    if (polyIndex === -1) {
-                        // 현재 그리고 있는 다각형의 점
-                        isHovered = hoveredElement && hoveredElement.type === 'currentPoint' && hoveredElement.index === p.originalIndex;
-                        isDragged = draggingElement && draggingElement.type === 'currentPoint' && draggingElement.index === p.originalIndex;
-                    } else {
-                        // 이미 완성된 다각형의 점
-                        isHovered = hoveredElement && hoveredElement.type === 'polyPoint' && hoveredElement.polyIndex === polyIndex && hoveredElement.ptIndex === p.originalIndex;
-                        isDragged = draggingElement && draggingElement.type === 'polyPoint' && draggingElement.polyIndex === polyIndex && draggingElement.ptIndex === p.originalIndex;
-                    }
-
-                    if (isHovered || isDragged) {
-                        fgCtx.fillStyle = config.hoverColor;
-                        fgCtx.arc(p.x, p.y, config.pointRadius + 2, 0, Math.PI * 2); 
-                    } else if (!isClosed && i === 0 && resolved.length > 2) {
-                        fgCtx.fillStyle = '#10b981'; // Green to suggest closing
-                    } else {
-                        fgCtx.fillStyle = config.pointColor;
-                    }
-                    
-                    fgCtx.fill();
-                    fgCtx.strokeStyle = 'white';
-                    fgCtx.lineWidth = 1.5;
-                    fgCtx.stroke();
+                    if (isHov || isCurDrag) { fgCtx.fillStyle = config.hoverColor; fgCtx.arc(p.x, p.y, config.pointRadius + 2, 0, Math.PI * 2); } 
+                    else if (!isClosed && i === 0 && resolved.length > 2) { fgCtx.fillStyle = '#10b981'; } 
+                    else { fgCtx.fillStyle = config.pointColor; }
+                    fgCtx.fill(); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 1.5; fgCtx.stroke();
                 }
             };
 
-            // 1. 완성된 다각형들 모두 그리기
-            polygons.forEach((poly, index) => drawPoly(poly, true, index));
-            // 2. 현재 그리고 있는 다각형 그리기
-            drawPoly(currentPolygon, false, -1);
+            polygons.forEach((poly, index) => drawPoly(poly, true, index)); drawPoly(currentPolygon, false, -1);
+            fgCtx.textAlign = 'center'; fgCtx.textBaseline = 'middle';
 
-            // 3. Draw Items (Ball, Attacker, Opponent)
-            fgCtx.textAlign = 'center';
-            fgCtx.textBaseline = 'middle';
-            
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
-                const isHovered = hoveredElement && hoveredElement.type === 'item' && hoveredElement.index === i;
-                const isDragged = draggingElement && draggingElement.type === 'item' && draggingElement.index === i;
-                
-                // 현재 그리고 있는 다각형의 시작점인지 확인
-                const isStartPoint = currentPolygon.length > 2 && currentPolygon[0].ref === item.id;
+                const isHov = hoveredElement && hoveredElement.type === 'item' && hoveredElement.index === i;
+                const isCurDrag = draggingElement && draggingElement.type === 'item' && draggingElement.index === i;
+                const isStart = currentPolygon.length > 2 && currentPolygon[0].ref === item.id;
 
-                if (isStartPoint) {
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2);
-                    fgCtx.fillStyle = 'rgba(16, 185, 129, 0.4)'; 
-                    fgCtx.fill();
-                } else if (isHovered && currentMode === 'polygon') {
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2);
-                    fgCtx.fillStyle = 'rgba(59, 130, 246, 0.4)'; 
-                    fgCtx.fill();
-                } else if (isHovered || isDragged) {
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2); 
-                    fgCtx.fillStyle = 'rgba(0,0,0,0.15)'; 
-                    fgCtx.fill();
-                }
+                if (isStart) { fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2); fgCtx.fillStyle = 'rgba(16, 185, 129, 0.4)'; fgCtx.fill(); } 
+                else if (isHov && currentMode === 'polygon') { fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2); fgCtx.fillStyle = 'rgba(59, 130, 246, 0.4)'; fgCtx.fill(); } 
+                else if (isHov || isCurDrag) { fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 22, 0, Math.PI * 2); fgCtx.fillStyle = 'rgba(0,0,0,0.15)'; fgCtx.fill(); }
 
                 if (item.type === 'ball') {
                     const t = courtSelect.value;
                     if (t === 'ultimate') {
-                        // 얼티밋 프리즈비 디스크
-                        fgCtx.beginPath();
-                        fgCtx.arc(item.x, item.y, 18, 0, Math.PI * 2);
-                        fgCtx.fillStyle = '#fef08a'; 
-                        fgCtx.fill();
-                        fgCtx.strokeStyle = '#ca8a04';
-                        fgCtx.lineWidth = 3.5;
-                        fgCtx.stroke();
-                        
-                        fgCtx.beginPath();
-                        fgCtx.arc(item.x, item.y, 9, 0, Math.PI * 2);
-                        fgCtx.strokeStyle = '#ca8a04';
-                        fgCtx.lineWidth = 2.5;
-                        fgCtx.stroke();
+                        fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 18, 0, Math.PI * 2); fgCtx.fillStyle = '#fef08a'; fgCtx.fill();
+                        fgCtx.strokeStyle = '#ca8a04'; fgCtx.lineWidth = 3.5; fgCtx.stroke();
+                        fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 9, 0, Math.PI * 2); fgCtx.strokeStyle = '#ca8a04'; fgCtx.lineWidth = 2.5; fgCtx.stroke();
                     } else {
                         let emoji = '⚽';
                         if (t === 'basketball') emoji = '🏀';
-                        if (t === 'volleyball' || t === 'netball') emoji = '🏐';
-                        if (t === 'baseball') emoji = '⚾';
-                        
-                        // 공 이모지는 화면 회전과 무관하게 똑바로 보이도록 컨텍스트 역회전 처리
-                        fgCtx.save();
-                        fgCtx.translate(item.x, item.y);
-                        if (isVerticalView) fgCtx.rotate(-Math.PI / 2);
-                        fgCtx.globalAlpha = 1.0;
-                        fgCtx.fillStyle = '#000000';
-                        fgCtx.font = '39px Arial'; 
-                        fgCtx.fillText(emoji, 0, 0);
-                        fgCtx.restore();
+                        if (t === 'volleyball' || t === 'netball' || t === 'dodgeball') emoji = '🏐';
+                        if (t === 'baseball') emoji = '⚾'; 
+                        fgCtx.save(); fgCtx.translate(item.x, item.y); if (isVerticalView) fgCtx.rotate(-Math.PI / 2);
+                        fgCtx.globalAlpha = 1.0; fgCtx.fillStyle = '#000000'; fgCtx.font = '39px Arial'; fgCtx.fillText(emoji, 0, 0); fgCtx.restore();
                     }
                 } else if (item.type === 'attacker') {
-                    // 공격수: ⭕ (빨간색)
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 13, 0, Math.PI * 2);
-                    fgCtx.fillStyle = '#ef4444'; 
-                    fgCtx.fill();
-                    fgCtx.strokeStyle = 'white';
-                    fgCtx.lineWidth = 2.5;
-                    fgCtx.stroke();
-                    
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 5.5, 0, Math.PI * 2);
-                    fgCtx.strokeStyle = 'white';
-                    fgCtx.lineWidth = 3;
-                    fgCtx.stroke();
+                    fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 13, 0, Math.PI * 2); fgCtx.fillStyle = '#ef4444'; fgCtx.fill(); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 2.5; fgCtx.stroke();
+                    fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 5.5, 0, Math.PI * 2); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 3; fgCtx.stroke();
                 } else if (item.type === 'opponent') {
-                    // 수비수: ❌ (파란색)
-                    fgCtx.beginPath();
-                    fgCtx.arc(item.x, item.y, 13, 0, Math.PI * 2); 
-                    fgCtx.fillStyle = '#2563eb'; 
-                    fgCtx.fill();
-                    fgCtx.strokeStyle = 'white';
-                    fgCtx.lineWidth = 2.5;
-                    fgCtx.stroke();
-                    
-                    fgCtx.beginPath();
-                    const d = 5.5; 
-                    fgCtx.moveTo(item.x - d, item.y - d);
-                    fgCtx.lineTo(item.x + d, item.y + d);
-                    fgCtx.moveTo(item.x + d, item.y - d);
-                    fgCtx.lineTo(item.x - d, item.y + d);
-                    fgCtx.strokeStyle = 'white';
-                    fgCtx.lineWidth = 3;
-                    fgCtx.stroke();
+                    fgCtx.beginPath(); fgCtx.arc(item.x, item.y, 13, 0, Math.PI * 2); fgCtx.fillStyle = '#2563eb'; fgCtx.fill(); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 2.5; fgCtx.stroke();
+                    fgCtx.beginPath(); const d = 5.5; fgCtx.moveTo(item.x - d, item.y - d); fgCtx.lineTo(item.x + d, item.y + d); fgCtx.moveTo(item.x + d, item.y - d); fgCtx.lineTo(item.x - d, item.y + d); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 3; fgCtx.stroke();
                 }
             }
 
-            // 4. 선(Edge) 위에 마우스를 올렸을 때 점 추가 미리보기 (초록색 점) 표시
             if (hoveredElement && hoveredElement.type === 'polyEdge') {
-                fgCtx.beginPath();
-                fgCtx.arc(hoveredElement.insertX, hoveredElement.insertY, config.pointRadius, 0, Math.PI * 2);
-                fgCtx.fillStyle = '#10b981'; // Green
-                fgCtx.fill();
-                fgCtx.strokeStyle = 'white';
-                fgCtx.lineWidth = 1.5;
-                fgCtx.stroke();
+                fgCtx.beginPath(); fgCtx.arc(hoveredElement.insertX, hoveredElement.insertY, config.pointRadius, 0, Math.PI * 2);
+                fgCtx.fillStyle = '#10b981'; fgCtx.fill(); fgCtx.strokeStyle = 'white'; fgCtx.lineWidth = 1.5; fgCtx.stroke();
             }
+            fgCtx.restore(); 
             
-            fgCtx.restore(); // 회전된 렌더링 컨텍스트 복구
-            
-            // --- UI 툴바 버튼 동적 업데이트 (면 완성/취소 버튼 표시) ---
             if (currentMode === 'polygon' && currentPolygon.length > 0) {
                 finishPolygonBtn.classList.remove('hidden');
-                if (currentPolygon.length >= 3) {
-                    finishPolygonBtn.innerHTML = '✅ 면 완성';
-                    finishPolygonBtn.className = 'px-3 py-2 text-sm font-bold text-white rounded-md transition-colors whitespace-nowrap snap-start active:scale-95 shadow-sm mx-1 bg-green-500 hover:bg-green-600';
-                } else {
-                    finishPolygonBtn.innerHTML = '❌ 선 끊기';
-                    finishPolygonBtn.className = 'px-3 py-2 text-sm font-bold text-white rounded-md transition-colors whitespace-nowrap snap-start active:scale-95 shadow-sm mx-1 bg-red-500 hover:bg-red-600';
-                }
-            } else {
-                finishPolygonBtn.classList.add('hidden');
-                finishPolygonBtn.className = 'hidden'; 
-            }
+                if (currentPolygon.length >= 3) { finishPolygonBtn.innerHTML = '✅ 면 완성'; finishPolygonBtn.className = 'px-3 py-2 text-sm font-bold text-white rounded-md transition-colors whitespace-nowrap snap-start active:scale-95 shadow-sm mx-1 bg-green-500 hover:bg-green-600'; } 
+                else { finishPolygonBtn.innerHTML = '❌ 선 끊기'; finishPolygonBtn.className = 'px-3 py-2 text-sm font-bold text-white rounded-md transition-colors whitespace-nowrap snap-start active:scale-95 shadow-sm mx-1 bg-red-500 hover:bg-red-600'; }
+            } else { finishPolygonBtn.classList.add('hidden'); finishPolygonBtn.className = 'hidden'; }
         }
 
         function getMousePos(e) {
-            const rect = fgCanvas.getBoundingClientRect();
-            let clientX = e.clientX;
-            let clientY = e.clientY;
-            
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
-
-            // 터치/클릭 지점의 화면상 좌표
-            let sx = clientX - rect.left;
-            let sy = clientY - rect.top;
-
-            // 세로 모드로 회전되었을 때는 좌표를 논리적(가로 모드) 좌표계로 역변환하여 반환
-            if (isVerticalView) {
-                return {
-                    x: sy,
-                    y: currentCourtH - sx
-                };
-            } else {
-                return {
-                    x: sx,
-                    y: sy
-                };
-            }
-        }
-
-        // 두 점(v, w)을 잇는 선분과 특정 점(p) 사이의 최단 거리 계산
-        function distToSegmentSquared(p, v, w) {
-            const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
-            if (l2 === 0) return (p.x - v.x) ** 2 + (p.y - v.y) ** 2;
-            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-            t = Math.max(0, Math.min(1, t));
-            return (p.x - (v.x + t * (w.x - v.x))) ** 2 + (p.y - (v.y + t * (w.y - v.y))) ** 2;
+            const rect = fgCanvas.getBoundingClientRect(); let cx = e.clientX, cy = e.clientY;
+            if (e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            let sx = cx - rect.left, sy = cy - rect.top;
+            if (isVerticalView) return { x: sy, y: currentCourtH - sx }; else return { x: sx, y: sy };
         }
 
         function distToSegment(p, v, w) {
-            return Math.sqrt(distToSegmentSquared(p, v, w));
+            const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
+            if (l2 === 0) return Math.sqrt((p.x - v.x) ** 2 + (p.y - v.y) ** 2);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t)); return Math.sqrt((p.x - (v.x + t * (w.x - v.x))) ** 2 + (p.y - (v.y + t * (w.y - v.y))) ** 2);
         }
 
         function checkIntersection(x, y) {
-            // 1. Check items first (top layer)
-            const itemRadius = 26; 
-            for (let i = items.length - 1; i >= 0; i--) {
-                const item = items[i];
-                if (Math.hypot(item.x - x, item.y - y) < itemRadius) {
-                    return { type: 'item', index: i };
-                }
-            }
+            for (let i = items.length - 1; i >= 0; i--) if (Math.hypot(items[i].x - x, items[i].y - y) < 26) return { type: 'item', index: i };
+            for (let i = currentPolygon.length - 1; i >= 0; i--) if (!currentPolygon[i].ref && Math.hypot(currentPolygon[i].x - x, currentPolygon[i].y - y) < config.pointRadius + 10) return { type: 'currentPoint', index: i };
+            for (let pIdx = polygons.length - 1; pIdx >= 0; pIdx--) for (let i = polygons[pIdx].length - 1; i >= 0; i--) if (!polygons[pIdx][i].ref && Math.hypot(polygons[pIdx][i].x - x, polygons[pIdx][i].y - y) < config.pointRadius + 10) return { type: 'polyPoint', polyIndex: pIdx, ptIndex: i };
             
-            const pointHitZone = config.pointRadius + 10; 
-            
-            // 2. Check current ongoing polygon points
-            for (let i = currentPolygon.length - 1; i >= 0; i--) {
-                const p = currentPolygon[i];
-                if (p.ref) continue; 
-                if (Math.hypot(p.x - x, p.y - y) < pointHitZone) {
-                    return { type: 'currentPoint', index: i };
-                }
-            }
-
-            // 3. Check closed polygons points
-            for (let pIdx = polygons.length - 1; pIdx >= 0; pIdx--) {
-                const poly = polygons[pIdx];
-                for (let i = poly.length - 1; i >= 0; i--) {
-                    const p = poly[i];
-                    if (p.ref) continue;
-                    if (Math.hypot(p.x - x, p.y - y) < pointHitZone) {
-                        return { type: 'polyPoint', polyIndex: pIdx, ptIndex: i };
-                    }
-                }
-            }
-            
-            // 4. 다각형의 선(Edge)을 클릭해서 새로운 점을 추가할 수 있도록 선분 교차 확인
             if (currentMode === 'polygon' || currentMode === 'move') {
-                const edgeHitZone = 8; // 선 클릭 판정 범위
                 const pObj = { x, y };
-
-                // 완성된 다각형들의 선
                 for (let pIdx = polygons.length - 1; pIdx >= 0; pIdx--) {
                     const poly = getResolvedPolyPoints(polygons[pIdx]);
                     for (let i = 0; i < poly.length; i++) {
-                        const p1 = poly[i];
-                        const p2 = poly[(i + 1) % poly.length];
-                        const dist = distToSegment(pObj, p1, p2);
-                        if (dist < edgeHitZone) {
-                            // 시각적 피드백을 위해 선 위로 수선의 발(가장 가까운 점)을 투영
-                            const l2 = (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
-                            let t = ((x - p1.x) * (p2.x - p1.x) + (y - p1.y) * (p2.y - p1.y)) / l2;
-                            t = Math.max(0, Math.min(1, t));
-                            return { 
-                                type: 'polyEdge', 
-                                polyIndex: pIdx, 
-                                insertIndex: p1.originalIndex + 1, 
-                                insertX: p1.x + t * (p2.x - p1.x), 
-                                insertY: p1.y + t * (p2.y - p1.y) 
-                            };
+                        const p1 = poly[i], p2 = poly[(i + 1) % poly.length];
+                        if (distToSegment(pObj, p1, p2) < 8) {
+                            let t = ((x - p1.x) * (p2.x - p1.x) + (y - p1.y) * (p2.y - p1.y)) / ((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2); t = Math.max(0, Math.min(1, t));
+                            return { type: 'polyEdge', polyIndex: pIdx, insertIndex: p1.originalIndex + 1, insertX: p1.x + t * (p2.x - p1.x), insertY: p1.y + t * (p2.y - p1.y) };
                         }
                     }
                 }
-                
-                // 현재 그리고 있는 다각형의 선
                 if (currentPolygon.length > 1) {
                     const curPoly = getResolvedPolyPoints(currentPolygon);
                     for (let i = 0; i < curPoly.length - 1; i++) {
-                        const p1 = curPoly[i];
-                        const p2 = curPoly[i + 1];
-                        const dist = distToSegment(pObj, p1, p2);
-                        if (dist < edgeHitZone) {
-                            const l2 = (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
-                            let t = ((x - p1.x) * (p2.x - p1.x) + (y - p1.y) * (p2.y - p1.y)) / l2;
-                            t = Math.max(0, Math.min(1, t));
-                            return { 
-                                type: 'polyEdge', 
-                                polyIndex: -1, 
-                                insertIndex: p1.originalIndex + 1, 
-                                insertX: p1.x + t * (p2.x - p1.x), 
-                                insertY: p1.y + t * (p2.y - p1.y) 
-                            };
+                        const p1 = curPoly[i], p2 = curPoly[i + 1];
+                        if (distToSegment(pObj, p1, p2) < 8) {
+                            let t = ((x - p1.x) * (p2.x - p1.x) + (y - p1.y) * (p2.y - p1.y)) / ((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2); t = Math.max(0, Math.min(1, t));
+                            return { type: 'polyEdge', polyIndex: -1, insertIndex: p1.originalIndex + 1, insertX: p1.x + t * (p2.x - p1.x), insertY: p1.y + t * (p2.y - p1.y) };
                         }
                     }
                 }
-            }
-
-            return null;
+            } return null;
         }
 
-        fgCanvas.addEventListener('mousedown', handlePointerDown);
-        fgCanvas.addEventListener('touchstart', handlePointerDown, { passive: false });
-        fgCanvas.addEventListener('mousemove', handlePointerMove);
-        fgCanvas.addEventListener('touchmove', handlePointerMove, { passive: false });
-        window.addEventListener('mouseup', handlePointerUp);
-        window.addEventListener('touchend', handlePointerUp);
+        fgCanvas.addEventListener('mousedown', handlePointerDown); fgCanvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+        fgCanvas.addEventListener('mousemove', handlePointerMove); fgCanvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('mouseup', handlePointerUp); window.addEventListener('touchend', handlePointerUp);
 
         function handlePointerDown(e) {
             if (e.type === 'touchstart') e.preventDefault();
-
-            const pos = getMousePos(e);
-            lastPos = pos;
-            const intersected = checkIntersection(pos.x, pos.y);
-
-            isDragged = false; 
+            const pos = getMousePos(e); lastPos = pos; const intersected = checkIntersection(pos.x, pos.y); isDragged = false; 
 
             if (currentMode === 'eraser') {
                 if (intersected) {
-                    if (intersected.type === 'currentPoint') {
-                        currentPolygon.splice(intersected.index, 1);
-                    } else if (intersected.type === 'polyPoint') {
-                        polygons[intersected.polyIndex].splice(intersected.ptIndex, 1);
-                        if (polygons[intersected.polyIndex].length < 3) {
-                            polygons.splice(intersected.polyIndex, 1); // 점이 3개 미만이 되면 다각형 자체를 삭제
-                        }
-                    } else if (intersected.type === 'item') {
-                        const itemId = items[intersected.index].id;
-                        items.splice(intersected.index, 1);
-                        
-                        // 지워진 아이템(선수)이 포함된 다각형 연결 정보도 정리
-                        polygons = polygons.map(poly => poly.filter(pt => pt.ref !== itemId)).filter(poly => poly.length >= 3);
-                        currentPolygon = currentPolygon.filter(pt => pt.ref !== itemId);
+                    if (intersected.type === 'currentPoint') currentPolygon.splice(intersected.index, 1);
+                    else if (intersected.type === 'polyPoint') { polygons[intersected.polyIndex].splice(intersected.ptIndex, 1); if (polygons[intersected.polyIndex].length < 3) polygons.splice(intersected.polyIndex, 1); } 
+                    else if (intersected.type === 'item') {
+                        const id = items[intersected.index].id; items.splice(intersected.index, 1);
+                        polygons = polygons.map(poly => poly.filter(pt => pt.ref !== id)).filter(poly => poly.length >= 3); currentPolygon = currentPolygon.filter(pt => pt.ref !== id);
                     }
-                    saveState();
-                    hoveredElement = null;
-                }
-                drawForeground();
-                return;
+                    saveState(); hoveredElement = null;
+                } drawForeground(); return;
             }
 
-            // '이동' 전용 모드 처리
-            if (currentMode === 'move') {
-                if (intersected) {
-                    draggingElement = intersected;
-                    fgCanvas.classList.add('grabbing');
-                    fgCanvas.classList.remove('grab');
-                }
-                drawForeground();
-                return;
-            }
+            if (currentMode === 'move') { if (intersected) { draggingElement = intersected; fgCanvas.classList.add('grabbing'); fgCanvas.classList.remove('grab'); } drawForeground(); return; }
 
-            // 선을 클릭해서 새로운 점을 추가하는 동작
             if (intersected && intersected.type === 'polyEdge') {
                 const newPt = { id: Date.now() + Math.random(), x: intersected.insertX, y: intersected.insertY };
-                if (intersected.polyIndex === -1) {
-                    currentPolygon.splice(intersected.insertIndex, 0, newPt);
-                    draggingElement = { type: 'currentPoint', index: intersected.insertIndex };
-                } else {
-                    polygons[intersected.polyIndex].splice(intersected.insertIndex, 0, newPt);
-                    draggingElement = { type: 'polyPoint', polyIndex: intersected.polyIndex, ptIndex: intersected.insertIndex };
-                }
-                isDragged = true; // 강제로 드래그 상태로 만들어 기록되도록 함
-                fgCanvas.classList.add('grabbing');
-                fgCanvas.classList.remove('pointer', 'grab');
-                drawForeground();
-                return;
+                if (intersected.polyIndex === -1) { currentPolygon.splice(intersected.insertIndex, 0, newPt); draggingElement = { type: 'currentPoint', index: intersected.insertIndex }; } 
+                else { polygons[intersected.polyIndex].splice(intersected.insertIndex, 0, newPt); draggingElement = { type: 'polyPoint', polyIndex: intersected.polyIndex, ptIndex: intersected.insertIndex }; }
+                isDragged = true; fgCanvas.classList.add('grabbing'); fgCanvas.classList.remove('pointer', 'grab'); drawForeground(); return;
             }
 
-            // 다각형, 공, 수비수, 공격수 추가 모드 처리
             if (currentMode === 'polygon') {
-                // 다각형 닫기 (시작점 클릭 확인)
-                let isStartPointClicked = false;
-                if (currentPolygon.length > 2) {
-                    if (intersected && intersected.type === 'item' && currentPolygon[0].ref === items[intersected.index].id) {
-                        isStartPointClicked = true; // 시작점이 선수(아이템)인 경우
-                    } else if (intersected && intersected.type === 'currentPoint' && intersected.index === 0) {
-                        isStartPointClicked = true; // 시작점이 일반 점인 경우
-                    }
+                let isStart = false;
+                if (currentPolygon.length > 2) { if (intersected && intersected.type === 'item' && currentPolygon[0].ref === items[intersected.index].id) isStart = true; else if (intersected && intersected.type === 'currentPoint' && intersected.index === 0) isStart = true; }
+                if (isStart) { polygons.push([...currentPolygon]); currentPolygon = []; saveState(); } 
+                else {
+                    if (intersected && intersected.type === 'item') { currentPolygon.push({ id: Date.now() + Math.random(), ref: items[intersected.index].id }); } 
+                    else currentPolygon.push({ id: Date.now() + Math.random(), x: pos.x, y: pos.y });
+                    draggingElement = { type: 'currentPoint', index: currentPolygon.length - 1 }; saveState();
                 }
-
-                if (isStartPointClicked) {
-                    // 시작점을 눌렀으므로 면을 닫아 완성합니다
-                    polygons.push([...currentPolygon]);
-                    currentPolygon = [];
-                    saveState();
-                } else {
-                    // 선수 위에 클릭하면 점을 선수에게 편입(Snap), 아니면 빈 공간에 새 점 생성
-                    if (intersected && intersected.type === 'item') {
-                        const snappedItemId = items[intersected.index].id;
-                        currentPolygon.push({ id: Date.now() + Math.random(), ref: snappedItemId });
-                    } else {
-                        currentPolygon.push({ id: Date.now() + Math.random(), x: pos.x, y: pos.y });
-                    }
-                    // 추가한 점을 떼지 않고 즉시 드래그할 수 있도록 설정
-                    draggingElement = { type: 'currentPoint', index: currentPolygon.length - 1 };
-                    saveState();
-                }
-            } else if (currentMode === 'ball') {
-                items.push({ id: Date.now() + Math.random(), type: 'ball', x: pos.x, y: pos.y });
-                draggingElement = { type: 'item', index: items.length - 1 }; // 클릭 즉시 드래그 가능
-                saveState();
-            } else if (currentMode === 'opponent') {
-                items.push({ id: Date.now() + Math.random(), type: 'opponent', x: pos.x, y: pos.y });
-                draggingElement = { type: 'item', index: items.length - 1 }; // 클릭 즉시 드래그 가능
-                saveState();
-            } else if (currentMode === 'attacker') {
-                items.push({ id: Date.now() + Math.random(), type: 'attacker', x: pos.x, y: pos.y });
-                draggingElement = { type: 'item', index: items.length - 1 }; // 클릭 즉시 드래그 가능
-                saveState();
-            }
-            
-            drawForeground();
+            } else if (['ball', 'opponent', 'attacker'].includes(currentMode)) {
+                items.push({ id: Date.now() + Math.random(), type: currentMode, x: pos.x, y: pos.y }); draggingElement = { type: 'item', index: items.length - 1 }; saveState();
+            } drawForeground();
         }
 
         function handlePointerMove(e) {
-            if (e.type === 'touchmove') e.preventDefault();
-            const pos = getMousePos(e);
-            lastPos = pos;
-
+            if (e.type === 'touchmove') e.preventDefault(); const pos = getMousePos(e); lastPos = pos;
             if (draggingElement) {
-                if (draggingElement.type === 'currentPoint') {
-                    currentPolygon[draggingElement.index].x = pos.x;
-                    currentPolygon[draggingElement.index].y = pos.y;
-                } else if (draggingElement.type === 'polyPoint') {
-                    polygons[draggingElement.polyIndex][draggingElement.ptIndex].x = pos.x;
-                    polygons[draggingElement.polyIndex][draggingElement.ptIndex].y = pos.y;
-                } else if (draggingElement.type === 'item') {
-                    items[draggingElement.index].x = pos.x;
-                    items[draggingElement.index].y = pos.y;
-                }
-                isDragged = true;
-                drawForeground();
+                if (draggingElement.type === 'currentPoint') { currentPolygon[draggingElement.index].x = pos.x; currentPolygon[draggingElement.index].y = pos.y; } 
+                else if (draggingElement.type === 'polyPoint') { polygons[draggingElement.polyIndex][draggingElement.ptIndex].x = pos.x; polygons[draggingElement.polyIndex][draggingElement.ptIndex].y = pos.y; } 
+                else if (draggingElement.type === 'item') { items[draggingElement.index].x = pos.x; items[draggingElement.index].y = pos.y; }
+                isDragged = true; drawForeground();
             } else {
                 const intersected = checkIntersection(pos.x, pos.y);
-                const sameElement = (a, b) => {
-                    if (!a && !b) return true;
-                    if (!a || !b) return false;
-                    if (a.type !== b.type) return false;
-                    if (a.type === 'polyPoint') return a.polyIndex === b.polyIndex && a.ptIndex === b.ptIndex;
-                    return a.index === b.index;
-                };
-
-                if (!sameElement(intersected, hoveredElement)) {
-                    hoveredElement = intersected;
-                    fgCanvas.classList.remove('pointer', 'grab'); // 기존 커서 초기화
-                    if (hoveredElement) {
-                        if (currentMode === 'move' && hoveredElement.type !== 'polyEdge') {
-                            fgCanvas.classList.add('grab'); // 이동 모드일 때는 손바닥
-                        } else {
-                            fgCanvas.classList.add('pointer'); // 다른 모드나 선 위일 때는 포인터
-                        }
-                    }
-                    drawForeground();
-                }
+                const sameElement = (a, b) => { if (!a && !b) return true; if (!a || !b) return false; if (a.type !== b.type) return false; if (a.type === 'polyPoint') return a.polyIndex === b.polyIndex && a.ptIndex === b.ptIndex; return a.index === b.index; };
+                if (!sameElement(intersected, hoveredElement)) { hoveredElement = intersected; fgCanvas.classList.remove('pointer', 'grab'); if (hoveredElement) { if (currentMode === 'move' && hoveredElement.type !== 'polyEdge') fgCanvas.classList.add('grab'); else fgCanvas.classList.add('pointer'); } drawForeground(); }
             }
         }
 
         function handlePointerUp() {
             if (draggingElement) {
-                if (isDragged) {
-                    // 점을 드래그하다가 다른 선수 위에서 놓았을 때 자동으로 선수에게 '편입(Snap)'되도록 처리
-                    if (draggingElement.type === 'polyPoint' || draggingElement.type === 'currentPoint') {
-                        const itemRadius = 26;
-                        let snappedItemId = null;
-                        for (let i = items.length - 1; i >= 0; i--) {
-                            if (Math.hypot(items[i].x - lastPos.x, items[i].y - lastPos.y) < itemRadius) {
-                                snappedItemId = items[i].id;
-                                break;
-                            }
-                        }
-                        if (snappedItemId) {
-                            if (draggingElement.type === 'polyPoint') {
-                                polygons[draggingElement.polyIndex][draggingElement.ptIndex] = { id: Date.now() + Math.random(), ref: snappedItemId };
-                            } else if (draggingElement.type === 'currentPoint') {
-                                currentPolygon[draggingElement.index] = { id: Date.now() + Math.random(), ref: snappedItemId };
-                            }
-                        }
-                    }
+                if (isDragged && (draggingElement.type === 'polyPoint' || draggingElement.type === 'currentPoint')) {
+                    let snappedId = null; for (let i = items.length - 1; i >= 0; i--) if (Math.hypot(items[i].x - lastPos.x, items[i].y - lastPos.y) < 26) { snappedId = items[i].id; break; }
+                    if (snappedId) { if (draggingElement.type === 'polyPoint') polygons[draggingElement.polyIndex][draggingElement.ptIndex] = { id: Date.now() + Math.random(), ref: snappedId }; else if (draggingElement.type === 'currentPoint') currentPolygon[draggingElement.index] = { id: Date.now() + Math.random(), ref: snappedId }; }
                     saveState(); 
-                }
-                draggingElement = null;
-                fgCanvas.classList.remove('grabbing');
-                
-                // 마우스를 놓았을 때 여전히 요소 위에 있다면 손바닥 모양 유지
-                if (currentMode === 'move' && hoveredElement) {
-                    fgCanvas.classList.add('grab');
-                }
-                
-                drawForeground();
+                } draggingElement = null; fgCanvas.classList.remove('grabbing'); if (currentMode === 'move' && hoveredElement) fgCanvas.classList.add('grab'); drawForeground();
             }
         }
 
-        courtSelect.addEventListener('change', () => {
-            resizeCanvases();
-        });
-
+        courtSelect.addEventListener('change', () => resizeCanvases());
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         fullscreenBtn.addEventListener('click', () => {
-            const elem = document.documentElement;
-            
-            // 현재 전체화면 상태인지 확인 (크로스 브라우징)
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-
-            if (!isFullscreen) {
-                // 전체화면 진입 시도
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch((err) => {
-                        alert(`현재 환경에서 전체화면을 지원하지 않습니다.\n(사유: ${err.message})`);
-                    });
-                } else if (elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen(); // Safari 지원
-                } else {
-                    // 아이폰(iOS Safari) 등 지원하지 않는 기기를 위한 안내
-                    alert('이 기기(아이폰 등)의 브라우저는 전체화면 기능을 지원하지 않습니다. 꽉 찬 화면을 보시려면 기기를 가로로 돌리거나 브라우저 메뉴에서 [홈 화면에 추가]를 이용해 주세요.');
-                }
-            } else {
-                // 전체화면 해제 시도
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-            }
+            const elem = document.documentElement; const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!isFull) { if (elem.requestFullscreen) elem.requestFullscreen().catch(e => alert(`지원 안함: ${e.message}`)); else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen(); else alert('아이폰 등은 전체화면을 지원하지 않습니다.'); } 
+            else { if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); }
         });
 
-        // 전체화면 상태가 변할 때 아이콘 변경 및 화면 재계산 (표준 및 웹킷 모두 감지)
-        const handleFullscreenChange = () => {
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-            if (isFullscreen) {
-                fullscreenBtn.innerHTML = '🗗<span class="hidden sm:inline"> 축소</span>';
-            } else {
-                fullscreenBtn.innerHTML = '🖵<span class="hidden sm:inline"> 꽉차게</span>';
-            }
-            setTimeout(resizeCanvases, 100); // 브라우저 UI 숨김 처리 후 렌더링을 위해 약간의 딜레이
-        };
+        const handleFs = () => { const isFull = document.fullscreenElement || document.webkitFullscreenElement; fullscreenBtn.innerHTML = isFull ? '🗗<span class="hidden sm:inline"> 축소</span>' : '🖵<span class="hidden sm:inline"> 꽉차게</span>'; setTimeout(resizeCanvases, 100); };
+        document.addEventListener('fullscreenchange', handleFs); document.addEventListener('webkitfullscreenchange', handleFs);
+        clearBtn.addEventListener('click', () => { polygons = []; currentPolygon = []; items = []; draggingElement = null; hoveredElement = null; saveState(); drawForeground(); });
 
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        const iPanel = document.getElementById('instructionsPanel');
+        const iBtn = document.getElementById('instructionsToggleBtn');
+        const cBtn = document.getElementById('closeInstructionsBtn');
+        if(iBtn && iPanel && cBtn) { iBtn.addEventListener('click', () => iPanel.classList.toggle('hidden')); cBtn.addEventListener('click', () => iPanel.classList.add('hidden')); }
 
-        clearBtn.addEventListener('click', () => {
-            polygons = [];
-            currentPolygon = [];
-            items = [];
-            draggingElement = null;
-            hoveredElement = null;
-            saveState();
-            drawForeground();
-        });
-
-        // 사용법 토글 로직
-        const instructionsToggleBtn = document.getElementById('instructionsToggleBtn');
-        const instructionsPanel = document.getElementById('instructionsPanel');
-        instructionsToggleBtn.addEventListener('click', () => {
-            instructionsPanel.classList.toggle('hidden');
-        });
-
-        // Initialize on load
-        window.onload = () => {
-            resizeCanvases();
-            saveState(); // 초기 상태 저장
-        };
+        window.onload = () => { resizeCanvases(); saveState(); };
 
     </script>
 </body>
